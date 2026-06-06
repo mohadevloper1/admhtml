@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>CardSwap — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Exo+2:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════
+   ROOT VARIABLES & RESET
+═══════════════════════════════════ */
+:root{
+  --bg:#070b12; --bg2:#0c1220; --bg3:#0f1826; --bg4:#111d2e;
+  --border:rgba(59,130,246,.13); --border2:rgba(59,130,246,.28);
+  --blue:#3b82f6; --blue-l:#60a5fa; --blue-xl:#93c5fd;
+  --cyan:#06b6d4; --green:#22c55e; --red:#ef4444;
+  --amber:#f59e0b; --rose:#f43f5e; --teal:#10b981;
+  --text:#e2e8f0; --muted:#64748b; --r:14px; --r-sm:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Exo 2',sans-serif;background:var(--bg);color:var(--text)}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1e3a5f;border-radius:3px}
+
+/* ═══════════════════════════════════
+   BG DECORATIONS
+═══════════════════════════════════ */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(59,130,246,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(59,130,246,.04) 1px,transparent 1px);
+  background-size:44px 44px}
+.bg-glow{position:fixed;top:-140px;left:-100px;width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle,rgba(59,130,246,.10) 0%,transparent 70%);
+  pointer-events:none;z-index:0}
+
+/* ═══════════════════════════════════
+   APP SHELL
+═══════════════════════════════════ */
+.shell{display:flex;height:100vh;position:relative;z-index:1}
+
+/* ═══════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════ */
+.sidebar{
+  width:222px;flex-shrink:0;
+  background:rgba(9,13,24,.97);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:relative;z-index:10;
+  transition:width .22s;
+}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:22px 18px 18px;
+  border-bottom:1px solid rgba(59,130,246,.10);
+}
+.sb-logo-icon{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,#1d4ed8,#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 18px rgba(6,182,212,.45);
+}
+.sb-logo-icon svg{width:18px;height:18px}
+.sb-logo-text{font-family:'Orbitron',monospace;font-weight:800;font-size:14px;letter-spacing:1px;
+  background:linear-gradient(90deg,#60a5fa,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sb-logo-sub{font-size:9px;color:#2d3f58;letter-spacing:1.5px;margin-top:1px}
+
+.sb-nav{flex:1;padding:14px 8px;overflow-y:auto}
+.sb-section-label{font-size:9.5px;font-weight:700;letter-spacing:1.8px;
+  color:#2a3d55;padding:10px 10px 5px;text-transform:uppercase}
+
+.sb-btn{
+  width:100%;display:flex;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:8px;margin-bottom:2px;
+  background:transparent;border:1px solid transparent;
+  color:var(--muted);cursor:pointer;
+  font-family:'Exo 2',sans-serif;font-size:13px;font-weight:600;
+  letter-spacing:.3px;transition:all .17s;position:relative;text-align:left;
+}
+.sb-btn svg{width:15px;height:15px;flex-shrink:0}
+.sb-btn .sb-label{flex:1}
+.sb-btn:hover{color:#93c5fd;background:rgba(59,130,246,.07)}
+.sb-btn.active{
+  color:var(--blue-l);
+  background:linear-gradient(90deg,rgba(59,130,246,.20),rgba(59,130,246,.05));
+  border-color:rgba(59,130,246,.26);
+}
+.sb-btn.active::before{
+  content:'';position:absolute;left:0;top:22%;bottom:22%;
+  width:3px;border-radius:2px;
+  background:var(--blue);box-shadow:0 0 8px var(--blue);
+}
+.sb-badge{
+  font-size:10.5px;font-weight:700;padding:1px 8px;border-radius:12px;
+  background:var(--blue);color:#fff;margin-left:auto;min-width:22px;text-align:center;
+}
+.sb-badge.zero{background:#1e2d45;color:var(--muted)}
+
+.sb-footer{
+  padding:12px 16px;border-top:1px solid rgba(59,130,246,.08);
+  font-size:10px;color:#253347;letter-spacing:.8px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+
+/* ═══════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════ */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.main::-webkit-scrollbar{width:5px}
+
+/* TOP BAR */
+.topbar{
+  height:58px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;
+  background:rgba(9,13,24,.90);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:20;
+}
+.topbar-title{
+  font-family:'Orbitron',monospace;font-size:19px;font-weight:800;
+  letter-spacing:2px;
+  background:linear-gradient(90deg,#e2e8f0,#93c5fd);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  display:flex;align-items:center;gap:10px;
+}
+.topbar-title svg{width:20px;height:20px;-webkit-text-fill-color:initial;color:var(--blue-l);flex-shrink:0}
+.topbar-right{display:flex;align-items:center;gap:10px}
+
+/* STATUS PILL */
+.status-pill{
+  display:flex;align-items:center;gap:7px;
+  background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.32);
+  border-radius:20px;padding:6px 15px;
+}
+.pulse-dot{width:8px;height:8px;border-radius:50%;background:var(--green);
+  animation:pdot 1.4s ease-in-out infinite}
+@keyframes pdot{0%,100%{box-shadow:0 0 4px var(--green)}50%{box-shadow:0 0 12px var(--green),0 0 22px rgba(34,197,94,.4)}}
+.status-text{font-size:12px;font-weight:700;color:var(--green);letter-spacing:1px}
+
+/* CONTENT AREA */
+.content{padding:26px 26px;flex:1}
+.page{display:none}
+.page.active{display:block}
+
+/* ═══════════════════════════════════
+   STAT CARDS
+═══════════════════════════════════ */
+.stats-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:13px;margin-bottom:20px;
+}
+.stat-card{
+  background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);
+  padding:17px 18px;display:flex;align-items:center;gap:13px;
+  transition:all .2s;
+  animation:slideUp .42s ease both;
+}
+.stat-card:hover{border-color:var(--border2);box-shadow:0 6px 28px rgba(0,0,0,.4);transform:translateY(-2px)}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.stat-card:nth-child(1){animation-delay:.00s}
+.stat-card:nth-child(2){animation-delay:.06s}
+.stat-card:nth-child(3){animation-delay:.12s}
+.stat-card:nth-child(4){animation-delay:.18s}
+.stat-card:nth-child(5){animation-delay:.24s}
+.stat-card:nth-child(6){animation-delay:.30s}
+
+.stat-icon{
+  width:46px;height:46px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.stat-icon svg{width:22px;height:22px}
+.stat-label{font-size:9.5px;font-weight:700;letter-spacing:1.6px;color:var(--muted);margin-bottom:4px}
+.stat-value{font-family:'Orbitron',monospace;font-size:22px;font-weight:800;color:var(--text);letter-spacing:.5px}
+.stat-value.green{color:var(--green);text-shadow:0 0 14px rgba(34,197,94,.4)}
+.stat-value.red{color:var(--red)}
+.stat-value.amber{color:var(--amber)}
+.stat-value.blue{color:var(--blue-l)}
+
+/* ═══════════════════════════════════
+   PANEL (TABLE CONTAINER)
+═══════════════════════════════════ */
+.panel{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:18px;
+  animation:slideUp .45s ease .2s both;
+}
+.panel-header{
+  padding:15px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+}
+.panel-title{
+  font-family:'Orbitron',monospace;font-size:12.5px;font-weight:700;
+  letter-spacing:1px;color:var(--blue-xl);
+  display:flex;align-items:center;gap:8px;
+}
+.panel-title svg{width:15px;height:15px}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:9px 15px;text-align:left;
+  font-size:9.5px;font-weight:700;letter-spacing:1.5px;
+  color:#374b63;border-bottom:1px solid rgba(59,130,246,.10);
+  white-space:nowrap;
+}
+tbody td{
+  padding:10px 15px;font-size:13px;
+  border-bottom:1px solid rgba(59,130,246,.05);
+  vertical-align:middle;
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(59,130,246,.03)}
+
+/* ═══════════════════════════════════
+   BUTTONS
+═══════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 16px;border-radius:var(--r-sm);
+  font-family:'Exo 2',sans-serif;font-size:12.5px;font-weight:700;
+  letter-spacing:.7px;cursor:pointer;transition:all .17s;
+  border:1px solid transparent;white-space:nowrap;
+}
+.btn svg{width:13px;height:13px;flex-shrink:0}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+.btn-primary{background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;box-shadow:0 0 16px rgba(59,130,246,.3)}
+.btn-primary:hover{box-shadow:0 0 26px rgba(59,130,246,.5);transform:translateY(-1px)}
+.btn-cyan{background:linear-gradient(135deg,#0891b2,#06b6d4);color:#fff;box-shadow:0 0 16px rgba(6,182,212,.28)}
+.btn-cyan:hover{box-shadow:0 0 26px rgba(6,182,212,.46);transform:translateY(-1px)}
+.btn-danger{background:linear-gradient(135deg,#991b1b,#ef4444);color:#fff;box-shadow:0 0 12px rgba(239,68,68,.26)}
+.btn-danger:hover{box-shadow:0 0 22px rgba(239,68,68,.44);transform:translateY(-1px)}
+.btn-success{background:linear-gradient(135deg,#15803d,#22c55e);color:#fff;box-shadow:0 0 12px rgba(34,197,94,.26)}
+.btn-success:hover{box-shadow:0 0 22px rgba(34,197,94,.44);transform:translateY(-1px)}
+.btn-ghost{background:transparent;border-color:rgba(59,130,246,.28);color:var(--blue-l)}
+.btn-ghost:hover{background:rgba(59,130,246,.08);transform:translateY(-1px)}
+.btn-sm{padding:5px 11px;font-size:11.5px}
+.btn-xs{padding:4px 9px;font-size:11px}
+
+/* ═══════════════════════════════════
+   BADGES
+═══════════════════════════════════ */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 9px;border-radius:20px;
+  font-size:10.5px;font-weight:700;letter-spacing:.5px;white-space:nowrap;
+}
+.badge-green{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.badge-red{background:rgba(239,68,68,.12);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.badge-blue{background:rgba(59,130,246,.12);color:var(--blue-l);border:1px solid rgba(59,130,246,.25)}
+.badge-amber{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.badge-cyan{background:rgba(6,182,212,.12);color:var(--cyan);border:1px solid rgba(6,182,212,.25)}
+.badge-muted{background:rgba(100,116,139,.12);color:var(--muted);border:1px solid rgba(100,116,139,.2)}
+
+/* ═══════════════════════════════════
+   FORMS
+═══════════════════════════════════ */
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:10.5px;font-weight:700;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
+.form-input,.form-select,.form-textarea{
+  background:rgba(15,24,42,.8);border:1px solid var(--border);
+  border-radius:var(--r-sm);color:var(--text);
+  padding:9px 13px;font-family:'Exo 2',sans-serif;font-size:13.5px;
+  transition:border-color .17s,box-shadow .17s;outline:none;width:100%;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-select option{background:var(--bg2)}
+.form-error{font-size:12px;color:var(--red);margin-top:3px;display:none}
+.form-error.show{display:block}
+
+/* ═══════════════════════════════════
+   MODAL
+═══════════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.76);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .24s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:18px;
+  width:100%;max-width:500px;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+  transform:translateY(18px);transition:transform .26s;
+  max-height:90vh;overflow-y:auto;
+}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal::-webkit-scrollbar{width:5px}
+.modal-header{
+  padding:19px 22px 15px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-family:'Orbitron',monospace;font-size:14.5px;font-weight:700;letter-spacing:1px;color:var(--blue-xl)}
+.modal-close{
+  width:28px;height:28px;border-radius:6px;background:transparent;
+  border:1px solid var(--border);color:var(--muted);cursor:pointer;
+  font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .14s;
+}
+.modal-close:hover{background:rgba(239,68,68,.1);border-color:var(--red);color:var(--red)}
+.modal-body{padding:20px 22px;display:flex;flex-direction:column;gap:13px}
+.modal-footer{padding:14px 22px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:9px}
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+#toast-container{position:fixed;bottom:22px;right:22px;z-index:999;display:flex;flex-direction:column;gap:8px}
+.toast{
+  display:flex;align-items:center;gap:9px;padding:11px 16px;border-radius:10px;
+  font-size:13px;font-weight:600;animation:toastIn .28s ease;min-width:230px;
+}
+.toast svg{width:15px;height:15px;flex-shrink:0}
+.toast-success{background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.3);color:var(--green)}
+.toast-error{background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.3);color:var(--red)}
+.toast-info{background:rgba(59,130,246,.14);border:1px solid rgba(59,130,246,.3);color:var(--blue-l)}
+@keyframes toastIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+
+/* ═══════════════════════════════════
+   SPINNER
+═══════════════════════════════════ */
+.spinner{width:16px;height:16px;border-radius:50%;border:2.5px solid var(--border);
+  border-top-color:var(--blue);animation:spin .65s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════════════════════
+   SEARCH BAR
+═══════════════════════════════════ */
+.search-wrap{position:relative}
+.search-wrap svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);
+  width:14px;height:14px;color:var(--muted);pointer-events:none}
+.search-input{
+  background:rgba(15,24,42,.8);border:1px solid var(--border);border-radius:var(--r-sm);
+  color:var(--text);padding:8px 12px 8px 33px;
+  font-family:'Exo 2',sans-serif;font-size:13px;
+  outline:none;width:260px;transition:border-color .17s;
+}
+.search-input:focus{border-color:var(--blue)}
+
+/* ═══════════════════════════════════
+   USER AVATAR (initials)
+═══════════════════════════════════ */
+.u-av{
+  width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,#1d4ed8,#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10.5px;font-weight:700;color:#fff;
+  border:1.5px solid rgba(59,130,246,.3);
+}
+
+/* ═══════════════════════════════════
+   QUICK ACTIONS ROW
+═══════════════════════════════════ */
+.qa-row{display:flex;flex-wrap:wrap;gap:9px}
+
+/* ═══════════════════════════════════
+   TOGGLE SWITCH
+═══════════════════════════════════ */
+.toggle-wrap{position:relative;display:inline-block;width:46px;height:25px;cursor:pointer;flex-shrink:0}
+.toggle-wrap input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{
+  position:absolute;inset:0;border-radius:25px;
+  background:#1e2d45;border:1px solid var(--border);
+  transition:.25s;
+}
+.toggle-thumb{
+  position:absolute;left:3px;top:50%;transform:translateY(-50%);
+  width:17px;height:17px;border-radius:50%;
+  background:#4b6280;transition:.25s;
+}
+.toggle-wrap input:checked ~ .toggle-track{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-color:rgba(59,130,246,.5)}
+.toggle-wrap input:checked ~ .toggle-thumb{left:26px;background:#fff}
+
+/* ═══════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════ */
+#login-screen{
+  position:fixed;inset:0;z-index:500;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+}
+.login-card{
+  background:var(--bg2);border:1px solid var(--border2);border-radius:20px;
+  padding:38px 34px;width:100%;max-width:390px;
+  box-shadow:0 28px 90px rgba(0,0,0,.65);
+  animation:slideUp .4s ease;
+}
+.login-logo{text-align:center;margin-bottom:30px}
+.login-logo .icon{
+  width:56px;height:56px;border-radius:14px;margin:0 auto 12px;
+  background:linear-gradient(135deg,#1d4ed8,#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 28px rgba(6,182,212,.5);
+}
+.login-logo .icon svg{width:26px;height:26px}
+.login-title{font-family:'Orbitron',monospace;font-size:18px;font-weight:800;
+  background:linear-gradient(90deg,#60a5fa,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.login-sub{font-size:11.5px;color:var(--muted);letter-spacing:1px;margin-top:4px}
+
+/* ═══════════════════════════════════
+   COUNTRY BLOCK ROW
+═══════════════════════════════════ */
+.country-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 15px;border-bottom:1px solid rgba(59,130,246,.06);
+}
+.country-row:last-child{border-bottom:none}
+
+/* ═══════════════════════════════════
+   SECURITY ITEM
+═══════════════════════════════════ */
+.sec-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px;
+  background:rgba(15,24,42,.5);border:1px solid var(--border);
+  border-radius:var(--r-sm);margin-bottom:10px;
+}
+.sec-item-info{flex:1}
+.sec-item-title{font-size:13.5px;font-weight:600}
+.sec-item-desc{font-size:12px;color:var(--muted);margin-top:3px}
+
+/* ═══════════════════════════════════
+   HIDDEN
+═══════════════════════════════════ */
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div id="toast-container"></div>
+
+<!-- ══════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="6" width="20" height="12" rx="4"/>
+          <path d="M6 12h4M8 10v4"/>
+          <circle cx="15.5" cy="11" r=".9" fill="white"/>
+          <circle cx="17.5" cy="13" r=".9" fill="white"/>
+        </svg>
+      </div>
+      <div class="login-title">CardSwap</div>
+      <div class="login-sub">ADMIN PANEL</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="padding:12px 14px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);border-radius:var(--r-sm);display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#60a5fa" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".5" fill="#60a5fa"/></svg>
+        <span style="font-size:12px;color:#94a3b8">Restricted to authorized admin account only</span>
+      </div>
+      <div class="form-error" id="l-err"></div>
+      <button id="l-btn" onclick="doGoogleLogin()" style="
+        width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
+        padding:12px 20px;border-radius:var(--r-sm);
+        background:#fff;border:none;cursor:pointer;
+        font-family:'Exo 2',sans-serif;font-size:14px;font-weight:700;
+        color:#1a1a2e;letter-spacing:.3px;
+        box-shadow:0 2px 16px rgba(0,0,0,.35);
+        transition:all .18s;
+      " onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 24px rgba(0,0,0,.45)'"
+         onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 16px rgba(0,0,0,.35)'">
+        <!-- Official Google G icon -->
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+        </svg>
+        Continue with Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     MAIN APP SHELL
+══════════════════════════════════ -->
+<div class="shell hidden" id="app">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round">
+          <rect x="2" y="6" width="20" height="12" rx="4"/>
+          <path d="M6 12h4M8 10v4"/>
+          <circle cx="15.5" cy="11" r=".9" fill="white"/>
+          <circle cx="17.5" cy="13" r=".9" fill="white"/>
+        </svg>
+      </div>
+      <div>
+        <div class="sb-logo-text">CardSwap</div>
+        <div class="sb-logo-sub">ADMIN PANEL</div>
+      </div>
+    </div>
+
+    <div class="sb-nav">
+      <!-- Overview -->
+      <div class="sb-section-label">Overview</div>
+      <button class="sb-btn active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        <span class="sb-label">Dashboard</span>
+      </button>
+
+      <!-- Management -->
+      <div class="sb-section-label">Management</div>
+      <button class="sb-btn" data-page="trades">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <path d="M16 3h5v5M4 20 21 3"/>
+          <path d="M21 16v5h-5M15 15l6 6"/>
+          <path d="M4 4l5 5"/>
+        </svg>
+        <span class="sb-label">Trades</span>
+        <span class="sb-badge zero" id="sb-trades-badge">0</span>
+      </button>
+      <button class="sb-btn" data-page="users">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        <span class="sb-label">Users</span>
+        <span class="sb-badge zero" id="sb-users-badge">0</span>
+      </button>
+      <button class="sb-btn" data-page="bans">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+        </svg>
+        <span class="sb-label">Bans</span>
+        <span class="sb-badge zero" id="sb-bans-badge">0</span>
+      </button>
+
+      <!-- Security -->
+      <div class="sb-section-label">Security</div>
+      <button class="sb-btn" data-page="countries">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          <line x1="2" y1="12" x2="22" y2="12"/>
+        </svg>
+        <span class="sb-label">Countries</span>
+      </button>
+      <button class="sb-btn" data-page="security">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span class="sb-label">VPN & Security</span>
+      </button>
+
+      <!-- System -->
+      <div class="sb-section-label">System</div>
+      <button class="sb-btn" id="btn-logout-side">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="sb-label">Sign Out</span>
+      </button>
+    </div>
+
+    <div class="sb-footer">
+      <span>v1.0 · Admin</span>
+      <span id="sb-admin-name" style="color:var(--blue-l)"></span>
+    </div>
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        Dashboard
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill">
+          <div class="pulse-dot"></div>
+          <span class="status-text">SITE ONLINE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════ DASHBOARD PAGE ══════════ -->
+      <div class="page active" id="page-dashboard">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.22)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.9" stroke-linecap="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">TOTAL USERS</div>
+              <div class="stat-value blue" id="stat-users">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.22)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="1.9" stroke-linecap="round">
+                <path d="M16 3h5v5M4 20 21 3"/>
+                <path d="M21 16v5h-5M15 15l6 6"/>
+                <path d="M4 4l5 5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">ACTIVE TRADES</div>
+              <div class="stat-value green" id="stat-trades">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.22)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.9" stroke-linecap="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">BANNED USERS</div>
+              <div class="stat-value red" id="stat-bans">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.22)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.9" stroke-linecap="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <circle cx="12" cy="15.5" r=".6" fill="#f59e0b"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">VPN ATTEMPTS</div>
+              <div class="stat-value amber" id="stat-vpn">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(6,182,212,.12);border:1px solid rgba(6,182,212,.22)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.9" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">COUNTRIES</div>
+              <div class="stat-value" id="stat-countries">—</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.22)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.9" stroke-linecap="round">
+                <rect x="2" y="6" width="20" height="12" rx="4"/>
+                <path d="M6 12h4M8 10v4"/>
+                <circle cx="15.5" cy="11" r=".85" fill="#a78bfa"/>
+                <circle cx="17.5" cy="13" r=".85" fill="#a78bfa"/>
+              </svg>
+            </div>
+            <div>
+              <div class="stat-label">GAMES</div>
+              <div class="stat-value" id="stat-games">5+</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              Quick Actions
+            </div>
+          </div>
+          <div style="padding:16px 18px">
+            <div class="qa-row">
+              <button class="btn btn-primary btn-sm" onclick="navTo('users')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                Manage Users
+              </button>
+              <button class="btn btn-cyan btn-sm" onclick="navTo('trades')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 3h5v5M4 20 21 3"/></svg>
+                Manage Trades
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="navTo('countries')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                Block Countries
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="navTo('security')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                VPN Settings
+              </button>
+              <button class="btn btn-ghost btn-sm" onclick="refreshAll()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.23-3.94"/></svg>
+                Refresh Data
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Trades Table -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <path d="M16 3h5v5M4 20 21 3M21 16v5h-5"/>
+              </svg>
+              Recent Trades
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="navTo('trades')">View All</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>GAME</th><th>OFFERING</th><th>WANTING</th><th>TRADER</th><th>STATUS</th><th>ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody id="dash-trades-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Top Countries -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+              </svg>
+              Top Countries
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>COUNTRY</th><th>USERS</th><th>STATUS</th><th>ACTION</th></tr></thead>
+            <tbody id="dash-countries-body">
+              <tr><td colspan="4" style="text-align:center;color:var(--muted);padding:22px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ TRADES PAGE ══════════ -->
+      <div class="page" id="page-trades">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div style="font-family:'Orbitron',monospace;font-size:13px;color:var(--muted);letter-spacing:.8px">
+            <span class="badge badge-blue" id="trades-total-badge">0 trades</span>
+          </div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="trades-search" placeholder="Search trades…" oninput="filterTrades()"/>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <path d="M16 3h5v5M4 20 21 3M21 16v5h-5"/>
+              </svg>
+              All Trades
+            </div>
+            <div style="display:flex;gap:7px">
+              <button class="btn btn-ghost btn-sm" onclick="exportJSON('trades')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+              </button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>GAME</th><th>OFFERING</th><th>WANTING</th><th>TRADER</th><th>POSTED</th><th>STATUS</th><th>ACTIONS</th></tr>
+            </thead>
+            <tbody id="all-trades-body">
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ USERS PAGE ══════════ -->
+      <div class="page" id="page-users">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div><span class="badge badge-blue" id="users-total-badge">0 users</span></div>
+          <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" id="users-search" placeholder="Search users…" oninput="filterUsers()"/>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              All Users
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="exportJSON('users')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
+          <table>
+            <thead>
+              <tr><th>USER</th><th>EMAIL</th><th>COUNTRY</th><th>RATING</th><th>TRADES</th><th>JOINED</th><th>STATUS</th><th>ACTIONS</th></tr>
+            </thead>
+            <tbody id="all-users-body">
+              <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ BANS PAGE ══════════ -->
+      <div class="page" id="page-bans">
+        <div style="margin-bottom:20px"><span class="badge badge-red" id="bans-total-badge">0 banned</span></div>
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <circle cx="12" cy="12" r="9"/>
+                <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+              </svg>
+              Banned Users
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr><th>USER</th><th>EMAIL</th><th>COUNTRY</th><th>BAN REASON</th><th>BANNED ON</th><th>ACTIONS</th></tr>
+            </thead>
+            <tbody id="bans-body">
+              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══════════ COUNTRIES PAGE ══════════ -->
+      <div class="page" id="page-countries">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <!-- Left: user countries -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="2" y1="12" x2="22" y2="12"/>
+                </svg>
+                User Countries
+              </div>
+            </div>
+            <div id="country-stats-list" style="max-height:440px;overflow-y:auto"></div>
+          </div>
+          <!-- Right: block -->
+          <div>
+            <div class="panel" style="margin-bottom:16px">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9"/>
+                    <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                  </svg>
+                  Block a Country
+                </div>
+              </div>
+              <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+                <select class="form-select" id="block-country-sel">
+                  <option value="">Choose country to block…</option>
+                  <option>Saudi Arabia</option><option>UAE</option><option>Egypt</option>
+                  <option>Morocco</option><option>Jordan</option><option>Iraq</option>
+                  <option>Kuwait</option><option>Qatar</option><option>Bahrain</option>
+                  <option>Oman</option><option>Libya</option><option>Tunisia</option>
+                  <option>Algeria</option><option>Sudan</option><option>Yemen</option>
+                  <option>United States</option><option>United Kingdom</option>
+                  <option>Germany</option><option>France</option><option>Canada</option>
+                  <option>Australia</option><option>Russia</option><option>China</option>
+                  <option>Iran</option><option>Other</option>
+                </select>
+                <button class="btn btn-danger" onclick="blockCountry()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                  Block Country
+                </button>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Blocked Countries
+                </div>
+              </div>
+              <div id="blocked-list" style="padding:12px 14px;min-height:60px">
+                <span style="color:var(--muted);font-size:13px">No countries blocked.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ SECURITY PAGE ══════════ -->
+      <div class="page" id="page-security">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  VPN Detection
+                </div>
+              </div>
+              <div style="padding:18px;display:flex;flex-direction:column;gap:12px">
+                <div class="sec-item">
+                  <div class="sec-item-info">
+                    <div class="sec-item-title">Block VPN / Proxy Users</div>
+                    <div class="sec-item-desc">Prevent users connecting via VPN or proxy</div>
+                  </div>
+                  <label class="toggle-wrap" id="vpn-toggle-wrap">
+                    <input type="checkbox" id="vpn-toggle" onchange="saveSecSetting('vpnBlock',this.checked)"/>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="sec-item">
+                  <div class="sec-item-info">
+                    <div class="sec-item-title">Log VPN Attempts</div>
+                    <div class="sec-item-desc">Record connection attempts from VPN IPs</div>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input type="checkbox" id="vpn-log" onchange="saveSecSetting('vpnLog',this.checked)"/>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div style="padding:12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);border-radius:var(--r-sm)">
+                  <div style="display:flex;align-items:center;gap:7px;margin-bottom:5px">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span style="font-size:12px;font-weight:700;color:var(--amber)">Note</span>
+                  </div>
+                  <p style="font-size:12px;color:#94a3b8;line-height:1.6">VPN detection is approximate. Combine with manual review for best results.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="panel">
+              <div class="panel-header">
+                <div class="panel-title">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  Platform Rules
+                </div>
+              </div>
+              <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+                <div class="sec-item">
+                  <div class="sec-item-info">
+                    <div class="sec-item-title">Allow New Registrations</div>
+                    <div class="sec-item-desc">Users can create new accounts</div>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input type="checkbox" id="allow-reg" checked onchange="saveSecSetting('allowReg',this.checked)"/>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="sec-item">
+                  <div class="sec-item-info">
+                    <div class="sec-item-title">Allow Trade Posting</div>
+                    <div class="sec-item-desc">Users can post new trade offers</div>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input type="checkbox" id="allow-trades" checked onchange="saveSecSetting('allowTrades',this.checked)"/>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="sec-item">
+                  <div class="sec-item-info">
+                    <div class="sec-item-title">Allow Messaging</div>
+                    <div class="sec-item-desc">Users can send private messages</div>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input type="checkbox" id="allow-msg" checked onchange="saveSecSetting('allowMsg',this.checked)"/>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+                <div class="sec-item">
+                  <div class="sec-item-info">
+                    <div class="sec-item-title">Maintenance Mode</div>
+                    <div class="sec-item-desc">Show maintenance page to users</div>
+                  </div>
+                  <label class="toggle-wrap">
+                    <input type="checkbox" id="maintenance" onchange="saveSecSetting('maintenance',this.checked)"/>
+                    <span class="toggle-track"></span>
+                    <span class="toggle-thumb"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Edit Trade Modal -->
+<div class="modal-overlay" id="m-edit-trade">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Edit Trade</span>
+      <button class="modal-close" onclick="closeM('m-edit-trade')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="et-id"/>
+      <div class="form-group"><label class="form-label">Game</label>
+        <select class="form-select" id="et-game">
+          <option>Travel Town</option><option>Coin Master</option><option>Clash Royale</option>
+          <option>Brawl Stars</option><option>Hay Day</option><option>Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Offering</label><input class="form-input" id="et-offer"/></div>
+      <div class="form-group"><label class="form-label">Wanting</label><input class="form-input" id="et-want"/></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="et-desc"></textarea></div>
+      <div class="form-group"><label class="form-label">Status</label>
+        <select class="form-select" id="et-status">
+          <option value="open">Open</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeM('m-edit-trade')">Cancel</button>
+      <button class="btn btn-primary" id="b-save-trade" onclick="saveTrade()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Ban User Modal -->
+<div class="modal-overlay" id="m-ban">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Ban User</span>
+      <button class="modal-close" onclick="closeM('m-ban')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ban-uid"/>
+      <p style="font-size:13.5px;color:#94a3b8">
+        Ban <strong id="ban-uname" style="color:var(--red)"></strong>? They won't be able to log in.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Reason (optional)</label>
+        <input class="form-input" id="ban-reason" placeholder="Reason for ban…"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeM('m-ban')">Cancel</button>
+      <button class="btn btn-danger" id="b-do-ban" onclick="doBan()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        Confirm Ban
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-overlay" id="m-del">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <span class="modal-title">Confirm Delete</span>
+      <button class="modal-close" onclick="closeM('m-del')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:#94a3b8">Are you sure you want to delete this trade? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeM('m-del')">Cancel</button>
+      <button class="btn btn-danger" id="b-do-del" onclick="doDelete()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ SCRIPT ══════════ -->
+<script type="module">
+import { auth, db } from '../firebase.js';
+import {
+  signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  collection, getDocs, getDoc, doc, updateDoc, deleteDoc, setDoc,
+  query, where, orderBy, limit, serverTimestamp, getCountFromServer
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const ADMIN_EMAIL = 'iliassilias19@gmail.com';
+
+/* ─── State ─────────────────────────────────── */
+let allTrades=[], allUsers=[], blockedCountries=[], pendingDelId=null;
+
+/* ─── Utilities ─────────────────────────────── */
+function toast(msg, type='info'){
+  const box=document.getElementById('toast-container');
+  const icons={
+    success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    error:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+    info:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r=".6" fill="currentColor"/></svg>`
+  };
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.innerHTML=`${icons[type]||icons.info}<span>${msg}</span>`;
+  box.appendChild(t);
+  setTimeout(()=>{t.style.cssText='opacity:0;transform:translateX(28px);transition:all .28s';setTimeout(()=>t.remove(),300)},3200);
+}
+
+function openM(id){document.getElementById(id)?.classList.add('open')}
+function closeM(id){document.getElementById(id)?.classList.remove('open')}
+window.closeM=closeM;
+
+function setLoad(btn,on){
+  if(on){btn._orig=btn.innerHTML;btn.innerHTML='<span class="spinner"></span>';btn.disabled=true}
+  else{btn.innerHTML=btn._orig||btn.innerHTML;btn.disabled=false}
+}
+
+function ago(ts){
+  if(!ts) return '—';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  const s=Math.floor((Date.now()-d)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function fmtDate(ts){
+  if(!ts) return '—';
+  const d=ts.toDate?ts.toDate():new Date(ts);
+  return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'});
+}
+
+function esc(s){return (s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+
+/* ─── Navigation ─────────────────────────────── */
+const PAGE_TITLES={
+  dashboard:{text:'Dashboard',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`},
+  trades:{text:'Trades',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5"/></svg>`},
+  users:{text:'Users',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`},
+  bans:{text:'Bans',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>`},
+  countries:{text:'Countries',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>`},
+  security:{text:'VPN & Security',svg:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`},
+};
+
+function navTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-btn[data-page]').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page)?.classList.add('active');
+  document.querySelector(`.sb-btn[data-page="${page}"]`)?.classList.add('active');
+  const info=PAGE_TITLES[page]||{text:page,svg:''};
+  document.getElementById('page-title').innerHTML=`${info.svg}${info.text}`;
+}
+window.navTo=navTo;
+
+document.querySelectorAll('.sb-btn[data-page]').forEach(b=>{
+  b.addEventListener('click',()=>navTo(b.dataset.page));
+});
+
+/* ─── Auth ───────────────────────────────────── */
+onAuthStateChanged(auth, async user=>{
+  if(!user){
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('app').classList.add('hidden');
+    return;
+  }
+  // Check email whitelist
+  if(user.email !== ADMIN_EMAIL){
+    await signOut(auth);
+    showLoginError('Access denied. Only the authorized admin account can log in.');
+    return;
+  }
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  document.getElementById('sb-admin-name').textContent=user.displayName||'Admin';
+  loadAll();
+});
+
+window.doGoogleLogin=async()=>{
+  const btn=document.getElementById('l-btn');
+  const err=document.getElementById('l-err');
+  err.classList.remove('show');
+  btn.disabled=true;
+  btn._orig=btn.innerHTML;
+  btn.innerHTML='<span class="spinner" style="border-top-color:#4285F4"></span> Signing in…';
+  btn.style.color='#555';
+  try{
+    const provider=new GoogleAuthProvider();
+    provider.setCustomParameters({login_hint: ADMIN_EMAIL});
+    await signInWithPopup(auth, provider);
+  }catch(e){
+    err.textContent=e.code==='auth/popup-closed-by-user'?'Sign-in cancelled.':e.message.replace('Firebase:','').trim();
+    err.classList.add('show');
+    btn.innerHTML=btn._orig;
+    btn.style.color='#1a1a2e';
+    btn.disabled=false;
+  }
+};
+
+function showLoginError(msg){
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('app').classList.add('hidden');
+  const err=document.getElementById('l-err');
+  err.textContent=msg; err.classList.add('show');
+  const btn=document.getElementById('l-btn');
+  if(btn._orig){btn.innerHTML=btn._orig;btn.style.color='#1a1a2e';btn.disabled=false;}
+}
+
+document.getElementById('btn-logout-side').addEventListener('click',async()=>{
+  await signOut(auth);
+  location.reload();
+});
+
+/* ─── Load All ───────────────────────────────── */
+async function loadAll(){
+  await Promise.all([loadStats(), loadTrades(), loadUsers(), loadBlockedCountries(), loadSecSettings()]);
+}
+window.refreshAll=()=>{loadAll();toast('Data refreshed','info');}
+
+/* ─── Stats ──────────────────────────────────── */
+async function loadStats(){
+  try{
+    const [tc,uc,bc]=await Promise.all([
+      getCountFromServer(query(collection(db,'trades'),where('status','==','open'))),
+      getCountFromServer(collection(db,'users')),
+      getCountFromServer(query(collection(db,'users'),where('banned','==',true)))
+    ]);
+    document.getElementById('stat-trades').textContent=tc.data().count;
+    document.getElementById('stat-users').textContent=uc.data().count;
+    document.getElementById('stat-bans').textContent=bc.data().count;
+    document.getElementById('sb-trades-badge').textContent=tc.data().count;
+    document.getElementById('sb-trades-badge').className='sb-badge'+(tc.data().count>0?'':' zero');
+    document.getElementById('sb-users-badge').textContent=uc.data().count;
+    document.getElementById('sb-users-badge').className='sb-badge'+(uc.data().count>0?'':' zero');
+    document.getElementById('sb-bans-badge').textContent=bc.data().count;
+    document.getElementById('sb-bans-badge').className='sb-badge'+(bc.data().count>0?'':' zero');
+    // Countries count
+    const usersSnap=await getDocs(collection(db,'users'));
+    const ctrs=[...new Set(usersSnap.docs.map(d=>d.data().country).filter(Boolean))];
+    document.getElementById('stat-countries').textContent=ctrs.length;
+  }catch(e){console.error(e);}
+}
+
+/* ─── Trades ─────────────────────────────────── */
+async function loadTrades(){
+  const snap=await getDocs(query(collection(db,'trades'),orderBy('createdAt','desc'),limit(200)));
+  allTrades=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderAllTrades(allTrades);
+  renderDashTrades(allTrades.slice(0,5));
+  document.getElementById('trades-total-badge').textContent=`${allTrades.length} trades`;
+}
+
+function tradeStatusBadge(s){
+  if(s==='open') return '<span class="badge badge-green">Open</span>';
+  if(s==='completed') return '<span class="badge badge-blue">Completed</span>';
+  return '<span class="badge badge-muted">Cancelled</span>';
+}
+
+function renderAllTrades(list){
+  const tb=document.getElementById('all-trades-body');
+  if(!list.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:22px">No trades found</td></tr>';return;}
+  tb.innerHTML=list.map(t=>`
+    <tr>
+      <td><span style="font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;color:#06b6d4;letter-spacing:.8px">${t.gameName||'—'}</span></td>
+      <td style="color:#22c55e;font-weight:600">${t.offering||'—'}</td>
+      <td style="color:#f59e0b;font-weight:600">${t.wanting||'—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="u-av">${(t.username||'?').slice(0,2).toUpperCase()}</div>
+          <span style="font-weight:600;color:#93c5fd">${t.username||'—'}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:12px">${ago(t.createdAt)}</td>
+      <td>${tradeStatusBadge(t.status)}</td>
+      <td>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-xs" onclick="openEditTrade('${t.id}','${esc(t.gameName)}','${esc(t.offering)}','${esc(t.wanting)}','${esc(t.description||'')}','${t.status}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Edit
+          </button>
+          <button class="btn btn-danger btn-xs" onclick="confirmDelete('${t.id}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            Del
+          </button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function renderDashTrades(list){
+  const tb=document.getElementById('dash-trades-body');
+  if(!list.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No trades yet</td></tr>';return;}
+  tb.innerHTML=list.map(t=>`
+    <tr>
+      <td><span style="font-family:'Orbitron',monospace;font-size:9.5px;font-weight:700;color:#06b6d4">${t.gameName||'—'}</span></td>
+      <td style="color:#22c55e;font-weight:600">${t.offering||'—'}</td>
+      <td style="color:#f59e0b;font-weight:600">${t.wanting||'—'}</td>
+      <td style="color:#93c5fd;font-weight:600">${t.username||'—'}</td>
+      <td>${tradeStatusBadge(t.status)}</td>
+      <td>
+        <button class="btn btn-danger btn-xs" onclick="confirmDelete('${t.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Delete
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+window.filterTrades=()=>{
+  const q=document.getElementById('trades-search').value.toLowerCase();
+  renderAllTrades(allTrades.filter(t=>
+    (t.gameName||'').toLowerCase().includes(q)||
+    (t.offering||'').toLowerCase().includes(q)||
+    (t.wanting||'').toLowerCase().includes(q)||
+    (t.username||'').toLowerCase().includes(q)
+  ));
+};
+
+/* ─── Trade Edit ─────────────────────────────── */
+window.openEditTrade=(id,game,offer,want,desc,status)=>{
+  document.getElementById('et-id').value=id;
+  document.getElementById('et-game').value=game;
+  document.getElementById('et-offer').value=offer;
+  document.getElementById('et-want').value=want;
+  document.getElementById('et-desc').value=desc;
+  document.getElementById('et-status').value=status;
+  openM('m-edit-trade');
+};
+
+window.saveTrade=async()=>{
+  const btn=document.getElementById('b-save-trade');
+  setLoad(btn,true);
+  try{
+    await updateDoc(doc(db,'trades',document.getElementById('et-id').value),{
+      gameName:document.getElementById('et-game').value,
+      offering:document.getElementById('et-offer').value,
+      wanting:document.getElementById('et-want').value,
+      description:document.getElementById('et-desc').value,
+      status:document.getElementById('et-status').value,
+    });
+    closeM('m-edit-trade');
+    toast('Trade updated!','success');
+    loadTrades();
+  }catch(e){toast(e.message,'error');}
+  finally{setLoad(btn,false);}
+};
+
+/* ─── Trade Delete ───────────────────────────── */
+window.confirmDelete=id=>{pendingDelId=id;openM('m-del');};
+window.doDelete=async()=>{
+  const btn=document.getElementById('b-do-del');
+  setLoad(btn,true);
+  try{
+    await deleteDoc(doc(db,'trades',pendingDelId));
+    closeM('m-del');
+    toast('Trade deleted','info');
+    loadTrades(); loadStats();
+  }catch(e){toast(e.message,'error');}
+  finally{setLoad(btn,false);}
+};
+
+/* ─── Users ──────────────────────────────────── */
+async function loadUsers(){
+  const snap=await getDocs(query(collection(db,'users'),orderBy('createdAt','desc')));
+  allUsers=snap.docs.map(d=>({id:d.id,...d.data()}));
+  renderUsers(allUsers);
+  renderBans(allUsers.filter(u=>u.banned));
+  renderCountryStats(allUsers);
+  renderDashCountries(allUsers);
+  document.getElementById('users-total-badge').textContent=`${allUsers.length} users`;
+  document.getElementById('bans-total-badge').textContent=`${allUsers.filter(u=>u.banned).length} banned`;
+}
+
+function renderUsers(list){
+  const tb=document.getElementById('all-users-body');
+  if(!list.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:22px">No users found</td></tr>';return;}
+  tb.innerHTML=list.map(u=>{
+    const init=(u.username||'?').slice(0,2).toUpperCase();
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="u-av" style="${u.banned?'background:linear-gradient(135deg,#991b1b,#ef4444)':''}">${init}</div>
+          <div>
+            <div style="font-weight:600">${u.username||'—'}</div>
+          </div>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:12px">${u.email||'—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="var(--muted)" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+          ${u.country||'—'}
+        </div>
+      </td>
+      <td>${u.rating?'★ '+(+u.rating).toFixed(1):'—'}</td>
+      <td>${u.trades||0}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtDate(u.createdAt)}</td>
+      <td>${u.banned?'<span class="badge badge-red">Banned</span>':'<span class="badge badge-green">Active</span>'}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          ${u.banned
+            ?`<button class="btn btn-success btn-xs" onclick="unbanUser('${u.uid||u.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unban</button>`
+            :`<button class="btn btn-danger btn-xs" onclick="showBan('${u.uid||u.id}','${esc(u.username||'')}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Ban</button>`
+          }
+        </div>
+      </td>
+    </tr>`;}).join('');
+}
+
+window.filterUsers=()=>{
+  const q=document.getElementById('users-search').value.toLowerCase();
+  renderUsers(allUsers.filter(u=>
+    (u.username||'').toLowerCase().includes(q)||
+    (u.email||'').toLowerCase().includes(q)||
+    (u.country||'').toLowerCase().includes(q)
+  ));
+};
+
+function renderBans(list){
+  const tb=document.getElementById('bans-body');
+  if(!list.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:22px">No banned users</td></tr>';return;}
+  tb.innerHTML=list.map(u=>`
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="u-av" style="background:linear-gradient(135deg,#991b1b,#ef4444)">${(u.username||'?').slice(0,2).toUpperCase()}</div>
+          <span style="font-weight:600">${u.username||'—'}</span>
+        </div>
+      </td>
+      <td style="color:var(--muted);font-size:12px">${u.email||'—'}</td>
+      <td>${u.country||'—'}</td>
+      <td style="color:var(--muted)">${u.banReason||'No reason given'}</td>
+      <td style="color:var(--muted);font-size:12px">${fmtDate(u.bannedAt||u.createdAt)}</td>
+      <td>
+        <button class="btn btn-success btn-xs" onclick="unbanUser('${u.uid||u.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Unban
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ─── Ban / Unban ────────────────────────────── */
+window.showBan=(uid,uname)=>{
+  document.getElementById('ban-uid').value=uid;
+  document.getElementById('ban-uname').textContent=uname;
+  document.getElementById('ban-reason').value='';
+  openM('m-ban');
+};
+
+window.doBan=async()=>{
+  const btn=document.getElementById('b-do-ban');
+  const uid=document.getElementById('ban-uid').value;
+  const reason=document.getElementById('ban-reason').value;
+  setLoad(btn,true);
+  try{
+    await updateDoc(doc(db,'users',uid),{
+      banned:true,banReason:reason,bannedAt:serverTimestamp()
+    });
+    closeM('m-ban');
+    toast('User banned','success');
+    loadUsers(); loadStats();
+  }catch(e){toast(e.message,'error');}
+  finally{setLoad(btn,false);}
+};
+
+window.unbanUser=async(uid)=>{
+  try{
+    await updateDoc(doc(db,'users',uid),{banned:false,banReason:''});
+    toast('User unbanned','success');
+    loadUsers(); loadStats();
+  }catch(e){toast(e.message,'error');}
+};
+
+/* ─── Countries ──────────────────────────────── */
+function renderCountryStats(users){
+  const map={};
+  users.forEach(u=>{if(u.country) map[u.country]=(map[u.country]||0)+1;});
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  const el=document.getElementById('country-stats-list');
+  if(!sorted.length){el.innerHTML='<div style="padding:16px;color:var(--muted);font-size:13px">No data.</div>';return;}
+  el.innerHTML=sorted.map(([c,n])=>`
+    <div class="country-row">
+      <div style="display:flex;align-items:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="${blockedCountries.includes(c)?'#ef4444':'#64748b'}" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+        <span style="font-weight:600;font-size:13.5px">${c}</span>
+        ${blockedCountries.includes(c)?'<span class="badge badge-red" style="font-size:9px">Blocked</span>':''}
+      </div>
+      <span class="badge badge-blue">${n} user${n!==1?'s':''}</span>
+    </div>`).join('');
+}
+
+function renderDashCountries(users){
+  const map={};
+  users.forEach(u=>{if(u.country) map[u.country]=(map[u.country]||0)+1;});
+  const sorted=Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const tb=document.getElementById('dash-countries-body');
+  if(!sorted.length){tb.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:18px">No visitors yet</td></tr>';return;}
+  tb.innerHTML=sorted.map(([c,n])=>`
+    <tr>
+      <td style="font-weight:600">${c}</td>
+      <td><span class="badge badge-blue">${n}</span></td>
+      <td>${blockedCountries.includes(c)?'<span class="badge badge-red">Blocked</span>':'<span class="badge badge-green">Allowed</span>'}</td>
+      <td>
+        ${blockedCountries.includes(c)
+          ?`<button class="btn btn-success btn-xs" onclick="unblockCountry('${c}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>Unblock</button>`
+          :`<button class="btn btn-danger btn-xs" onclick="quickBlockCountry('${c}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Block</button>`
+        }
+      </td>
+    </tr>`).join('');
+}
+
+async function loadBlockedCountries(){
+  const snap=await getDocs(collection(db,'blocked_countries'));
+  blockedCountries=snap.docs.map(d=>d.id);
+  renderBlockedList();
+}
+
+function renderBlockedList(){
+  const el=document.getElementById('blocked-list');
+  if(!blockedCountries.length){el.innerHTML='<span style="color:var(--muted);font-size:13px">No countries blocked.</span>';return;}
+  el.innerHTML=blockedCountries.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(59,130,246,.06)">
+      <div style="display:flex;align-items:center;gap:7px">
+        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#ef4444" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        <span style="font-weight:600;font-size:13.5px">${c}</span>
+      </div>
+      <button class="btn btn-ghost btn-xs" onclick="unblockCountry('${c}')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Remove
+      </button>
+    </div>`).join('');
+}
+
+window.blockCountry=async()=>{
+  const c=document.getElementById('block-country-sel').value;
+  if(!c){toast('Select a country first','info');return;}
+  await setDoc(doc(db,'blocked_countries',c),{blockedAt:serverTimestamp()});
+  toast(`${c} blocked`,'success');
+  blockedCountries.push(c);
+  renderBlockedList();
+  renderCountryStats(allUsers);
+  renderDashCountries(allUsers);
+};
+
+window.unblockCountry=async(c)=>{
+  await deleteDoc(doc(db,'blocked_countries',c));
+  toast(`${c} unblocked`,'info');
+  blockedCountries=blockedCountries.filter(x=>x!==c);
+  renderBlockedList();
+  renderCountryStats(allUsers);
+  renderDashCountries(allUsers);
+};
+
+window.quickBlockCountry=async(c)=>{
+  document.getElementById('block-country-sel').value=c;
+  await window.blockCountry();
+};
+
+/* ─── Security Settings ──────────────────────── */
+async function loadSecSettings(){
+  try{
+    const snap=await getDoc(doc(db,'admin_settings','security'));
+    if(!snap.exists()) return;
+    const d=snap.data();
+    if(d.vpnBlock) document.getElementById('vpn-toggle').checked=true;
+    if(d.vpnLog) document.getElementById('vpn-log').checked=true;
+    if(d.allowReg===false) document.getElementById('allow-reg').checked=false;
+    if(d.allowTrades===false) document.getElementById('allow-trades').checked=false;
+    if(d.allowMsg===false) document.getElementById('allow-msg').checked=false;
+    if(d.maintenance) document.getElementById('maintenance').checked=true;
+    syncToggles();
+  }catch(e){}
+}
+
+window.saveSecSetting=async(key,val)=>{
+  try{
+    await setDoc(doc(db,'admin_settings','security'),{[key]:val},{merge:true});
+    toast(`Setting saved`,'success');
+    syncToggles();
+  }catch(e){toast(e.message,'error');}
+};
+
+function syncToggles(){
+  document.querySelectorAll('.toggle-wrap input[type=checkbox]').forEach(inp=>{
+    const track=inp.nextElementSibling;
+    const thumb=track.nextElementSibling;
+    if(inp.checked){
+      track.style.background='linear-gradient(135deg,#1d4ed8,#3b82f6)';
+      track.style.borderColor='rgba(59,130,246,.5)';
+      thumb.style.left='26px';
+      thumb.style.background='#fff';
+    }else{
+      track.style.background='#1e2d45';
+      track.style.borderColor='rgba(59,130,246,.13)';
+      thumb.style.left='3px';
+      thumb.style.background='#4b6280';
+    }
+  });
+}
+
+/* ─── Export JSON ────────────────────────────── */
+window.exportJSON=type=>{
+  const data=type==='trades'?allTrades:allUsers;
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`cardswap_${type}_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  toast(`${type} exported`,'success');
+};
+
+/* ─── Close modal on overlay click ──────────── */
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{
+  if(e.target===o) o.classList.remove('open');
+}));
+
+import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+</script>
+</body>
+</html>
